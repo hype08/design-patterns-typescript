@@ -85,9 +85,30 @@ function createDb<T extends BaseRecord>() {
 
     // Visitor
     visit(visitor: (item: T) => void): void {
-      Object.values(this.db).forEach(visitor)
+      Object.values(this.db).forEach(visitor);
     }
-    
+
+    // Strategy
+    selectStrongest(scoreStrategy: (item: T) => number): T | undefined {
+      const found: {
+        max: number;
+        item: T | undefined;
+      } = {
+        max: 0,
+        item: undefined,
+      };
+
+      Object.values(this.db).reduce((f, item) => {
+        const score = scoreStrategy(item);
+        if (score > f.max) {
+          f.max = score;
+          f.item = item;
+        }
+        return f;
+      }, found);
+
+      return found.item;
+    }
   }
   // // Singleton method 1
   // const db = new InMemoryDb();
@@ -98,16 +119,20 @@ function createDb<T extends BaseRecord>() {
 }
 
 const PokemonDB = createDb<Pokemon>();
-const unsub = PokemonDB.instance.onAfterAdd(({
-  value
-}) => {
+const unsub = PokemonDB.instance.onAfterAdd(({ value }) => {
   console.log(value);
-})
+});
 
 PokemonDB.instance.set({
   id: 'Pikachu',
   attack: 50,
   defense: 10,
+});
+
+PokemonDB.instance.set({
+  id: 'Raichu',
+  attack: 100,
+  defense: 40,
 });
 
 // unsub();
@@ -121,6 +146,10 @@ PokemonDB.instance.set({
 // unsub();
 
 PokemonDB.instance.visit(item => {
-  const { id, attack, defense } = item; 
+  const { id, attack, defense } = item;
   console.log(`${id}: ${attack}/${defense}`);
-})
+});
+
+const strongestAttack = PokemonDB.instance.selectStrongest(({ attack }) => attack);
+
+console.log(`Strongest: ${strongestAttack?.id}`);
