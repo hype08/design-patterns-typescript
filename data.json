@@ -1,0 +1,10 @@
+[{
+  "id": "Raichu",
+  "attack": 100,
+  "defense": 40
+},
+{
+  "id": "Pichu",
+  "attack": 20,
+  "defense": 5
+}]

@@ -1,3 +1,5 @@
+import { RecordHandler, load } from './adapter'
+
 type Listener<EventType> = (ev: EventType) => void;
 
 // Observer - PubSub
@@ -119,6 +121,16 @@ function createDb<T extends BaseRecord>() {
 }
 
 const PokemonDB = createDb<Pokemon>();
+
+// Adapter : set incoming record
+class PokemonDBAdapter implements RecordHandler<Pokemon> {
+  addRecord(record: Pokemon) {
+    PokemonDB.instance.set(record);
+  }
+}
+
+load('./data.json', new PokemonDBAdapter)
+
 const unsub = PokemonDB.instance.onAfterAdd(({ value }) => {
   console.log(value);
 });
@@ -129,21 +141,7 @@ PokemonDB.instance.set({
   defense: 10,
 });
 
-PokemonDB.instance.set({
-  id: 'Raichu',
-  attack: 100,
-  defense: 40,
-});
-
-// unsub();
-
-PokemonDB.instance.set({
-  id: 'Pichu',
-  attack: 20,
-  defense: 5,
-});
-
-// unsub();
+unsub();
 
 PokemonDB.instance.visit(item => {
   const { id, attack, defense } = item;
